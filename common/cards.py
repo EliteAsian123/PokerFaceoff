@@ -118,10 +118,10 @@ class Hand:
     cards: list[Card]
 
     def __eq__(self, other):
-        return self.type == other.type
+        return self.type.value == other.type.value
 
     def __lt__(self, other):
-        return self.type < other.type
+        return self.type.value < other.type.value
 
 def rank_value(card: Card) -> int:
     return card.rank.value
@@ -245,9 +245,9 @@ if __name__ == "__main__":
     print("\nPlayer 2:", hand2.type.name)
     print("Cards:", " ".join(str(card) for card in hand2.cards))
 
-    if hand1.type > hand2.type:
+    if hand1 > hand2:
         print("\nPlayer 1 wins!")
-    elif hand2.type > hand1.type:
+    elif hand2 > hand1:
         print("\nPlayer 2 wins!")
     else:
         print("\nTie!") # TODO
