@@ -111,6 +111,27 @@ class HandType(Enum):
     FOUR_OF_A_KIND = 7
     STRAIGHT_FLUSH = 8
 
+    def __str__(self) -> str:
+        match self:
+            case HandType.HIGH_CARD:
+                return "High Card"
+            case HandType.ONE_PAIR:
+                return "Pair"
+            case HandType.TWO_PAIR:
+                return "Two Pair"
+            case HandType.THREE_OF_A_KIND:
+                return "Three of a Kind"
+            case HandType.STRAIGHT:
+                return "Straight"
+            case HandType.FLUSH:
+                return "Flush"
+            case HandType.FULL_HOUSE:
+                return "Full House"
+            case HandType.FOUR_OF_A_KIND:
+                return "Four of a King"
+            case HandType.STRAIGHT_FLUSH:
+                return "Straight Flush"
+
 @dataclass()
 @total_ordering
 class Hand:
@@ -122,6 +143,14 @@ class Hand:
 
     def __lt__(self, other):
         return self.type.value < other.type.value
+
+    def __str__(self):
+        cards = " ".join(str(c) for c in self.cards)
+        return f"{str(self.type)} ({cards})"
+
+    def ansi_string(self):
+        cards = " ".join(c.ansi_string() for c in self.cards)
+        return f"{str(self.type)} ({cards})"
 
 def rank_value(card: Card) -> int:
     return card.rank.value
