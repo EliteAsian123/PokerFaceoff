@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
+from itertools import combinations
 import random
 
 class Suit(Enum):
@@ -22,20 +23,21 @@ class Suit(Enum):
     def is_red(self) -> bool:
         return not self.is_black()
 
-class Rank(Enum):
-    ACE = auto()
-    TWO = auto()
-    THREE = auto()
-    FOUR = auto()
-    FIVE = auto()
-    SIX = auto()
-    SEVEN = auto()
-    EIGHT = auto()
-    NINE = auto()
-    TEN = auto()
-    JACK = auto()
-    QUEEN = auto()
-    KING = auto()
+class Rank(Enum): 
+
+    TWO = 2 
+    THREE = 3
+    FOUR = 4
+    FIVE = 5
+    SIX = 6
+    SEVEN = 7
+    EIGHT = 8
+    NINE = 9
+    TEN = 10
+    JACK = 11 
+    QUEEN = 12 
+    KING = 13 
+    ACE = 14 
 
     def symbol(self) -> str:
         match self:
@@ -52,7 +54,7 @@ class Rank(Enum):
             case _:
                 return str(self.value) + " "
 
-@dataclass(frozen=True)
+@dataclass(frozen=True) 
 class Card:
     rank: Rank
     suit: Suit
@@ -97,7 +99,120 @@ def deck_shuffled() -> list[Card]:
     random.shuffle(d)
     return d
 
-# ===== EXAMPLE USAGE ====
+# ===== HAND EVALUATION ===== 
+class HandType(Enum): 
+    HIGH_CARD = 0
+    ONE_PAIR = 1
+    TWO_PAIR = 2
+    THREE_OF_A_KIND = 3
+    STRAIGHT = 4
+    FLUSH = 5
+    FULL_HOUSE = 6
+    FOUR_OF_A_KIND = 7
+    STRAIGHT_FLUSH = 8
+
+@dataclass
+class Hand:
+    type : HandType
+    cards: list[Card]
+
+def rank_value(card: Card) -> int:
+    return card.rank.value
+
+def is_flush (cards: list[Card]) -> bool:
+    for card in cards:
+        if card.suit != cards[0].suit:
+            return False
+        
+    return True
+
+def is_straight(cards: list[Card]) -> bool:
+    card_values = []
+    for card in cards:
+        card_values.append(rank_value(card))
+
+    card_values.sort()
+
+    # A to 5 straight case
+    if card_values == [2, 3, 4, 5, 14]:
+        return True
+
+    # Any other straight
+    for x in range(4):
+        if card_values[x] + 1 != card_values[x + 1]:
+            return False
+        
+    return True
+
+def evaluate_hand(cards: list[Card]) -> HandType:
+    card_values = []
+    for card in cards:
+        card_values.append(rank_value(card))
+
+    # count the times each rank appears
+    counts = []
+
+    for value in card_values:
+        if value not in counts:
+            counts.append(value)
+
+    pairs = 0
+    trips = False
+    quads = False
+
+    for value in counts:
+        amount = card_values.count(value)
+        if amount == 2:
+            pairs += 1
+        elif amount == 3:
+            trips = True
+        elif amount == 4:
+            quads = True
+
+    flush = is_flush(cards)
+    straight = is_straight(cards)
+
+    if straight and flush:
+        return HandType.STRAIGHT_FLUSH
+
+    if quads:
+        return HandType.FOUR_OF_A_KIND
+
+    if trips and pairs == 1:
+        return HandType.FULL_HOUSE
+
+    if flush:
+        return HandType.FLUSH
+
+    if straight:
+        return HandType.STRAIGHT
+
+    if trips:
+        return HandType.THREE_OF_A_KIND
+
+    if pairs == 2:
+        return HandType.TWO_PAIR
+
+    if pairs == 1:
+        return HandType.ONE_PAIR
+
+    else:
+        return HandType.HIGH_CARD
+
+def find_best_hand(cards: list[Card]) -> Hand:
+    # Find best hand possible with 2 held cards + 5 community cards
+    best = None
+
+    for five_cards in combinations(cards, 5):
+        five_cards = list(five_cards)
+
+        hand_type = evaluate_hand(five_cards)
+
+        if best is None or hand_type.value > best.type.value:
+            best = Hand(hand_type, five_cards)
+    return best
+
+# ===== EXAMPLE USAGE ==== 
 if __name__ == "__main__":
     deck_of_cards = deck_shuffled()
 
@@ -105,6 +220,29 @@ if __name__ == "__main__":
     player1 = [deck_of_cards.pop() for _ in range(2)]
     player2 = [deck_of_cards.pop() for _ in range(2)]
 
+    print("Community CArds:")
     print(" ".join(c.ansi_string() for c in five_cards))
+
+    print("\n Player 1:")
     print(" ".join(c.ansi_string() for c in player1))
+
+    print("\n Player 2:")
     print(" ".join(c.ansi_string() for c in player2))
+
+    hand1 = find_best_hand(player1 + five_cards)
+    hand2 = find_best_hand(player2 + five_cards)
+
+    print("\nPlayer 1:", hand1.type.name)
+    print("Cards:", " ".join(str(card) for card in hand1.cards))
+
+    print("\nPlayer 2:", hand2.type.name)
+    print("Cards:", " ".join(str(card) for card in hand2.cards))
+
+    if hand1.type.value > hand2.type.value:
+        print("\nPlayer 1 wins!")
+
+    elif hand2.type.value > hand1.type.value:
+            print("\nPlayer 2 wins!")
+
+    else:
+        print("\nTie!") # TODO
