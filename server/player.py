@@ -28,6 +28,9 @@ class Player:
         self.folded = True
         log_client_action(f"{self.name} folded.")
 
+    def do_show(self):
+        log_client_action(f"{self.name} shows their cards.")
+
     def do_check(self):
         log_client_action(f"{self.name} checked.")
 
@@ -43,8 +46,10 @@ class Player:
         self.folded = True
         log_client_action(f"{self.name} performed an illegal action '{action}'. {explaination}")
 
-    def action(self, current_bet: int) -> Action:
+    def action(self, current_bet: int, show_down: bool) -> Action:
         log_server_action(f"Action on {self.name}.")
+        if show_down:
+            return Show()
         if random.randint(1, 8) == 1:
             return Bet(max(current_bet * 2, 2))
         return Bet(current_bet)

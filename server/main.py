@@ -1,5 +1,5 @@
 from common.iter_clockwise import iter_clockwise, enumerate_clockwise
-from common.cards import Card, Rank, Suit, deck_shuffled
+from common.cards import Card, Hand, find_best_hand, deck_shuffled
 from common.actions import *
 from server.player import Player
 from server.logger import *
@@ -60,8 +60,8 @@ class State:
 
         log()
 
-    def __win(self, player: Player):
-        log_server_action(f"{player.name} wins!")
+    def __win(self, player: Player, reason: str):
+        log_server_action(f"{player.name} wins! {reason}")
 
     def __pot_bets(self):
         for p in self.players:
@@ -83,7 +83,7 @@ class State:
                 self.__pretty_print(i)
                 self.__step()
 
-                action = player.action(self.previous_bet)
+                action = player.action(self.previous_bet, False)
                 self.__process_action(player, action)
 
                 # See if anyone has won
@@ -97,7 +97,7 @@ class State:
                 # If only one person remains and they haven't folded, they won
                 if unfolded_amount == 1:
                     self.__pot_bets()
-                    self.__win(potential_winner)
+                    self.__win(potential_winner, "Everyone else folded.")
                     return True
 
             # A round of play does not end until all players have folded, all players
@@ -121,6 +121,11 @@ class State:
         match action:
             case Fold():
                 player.do_fold()
+            case Show():
+                player.illegal(
+                    action,
+                    f"You showed your hand before the showdown."
+                )
             case Bet(up_to=up_to):
                 if up_to < self.previous_bet or up_to < player.current_bet:
                     player.illegal(
@@ -214,6 +219,54 @@ class State:
         if self.__play(self.small_blind_index % len(self.players)):
             return
 
+        self.__showdown_stage()
+
+    def __showdown_stage(self):
+        log_server_action("Showdown stage.")
+
+        # Reset game state
+        self.previous_bet = 0
+
+        for i, player in enumerate_clockwise(self.players, self.small_blind_index % len(self.players)):
+            self.__pretty_print(i)
+            self.__step()
+
+            action = player.action(self.previous_bet, True)
+            match action:
+                case Fold():
+                    player.do_fold()
+                case Show():
+                    player.do_show()
+                case _:
+                    player.illegal(
+                        action,
+                        "You cannot do this in the showdown."
+                    )
+            pass
+
+        player_hands: list[Hand | None] = []
+        for player in self.players:
+            if player.folded:
+                player_hands.append(None)
+            else:
+                player_hands.append(find_best_hand(self.community_cards + player.pocket_cards))
+
+        highest_hands_players = []
+        for i in range(len(self.players)):
+            if len(highest_hands_players) == 0 or player_hands[i] == player_hands[highest_hands_players[0]]:
+                highest_hands_players.append(i)
+            elif player_hands[i] > player_hands[highest_hands_players[0]]:
+                highest_hands_players = [i]
+
+        if len(highest_hands_players) == 1:
+            self.__win(
+                self.players[highest_hands_players[0]],
+                f"Won with a {player_hands[highest_hands_players[0]].ansi_string()}."
+            )
+        else:
+            log_server_action("Tie!")
+            pass # TODO
+
 def main():
     players = [
         Player("Alex"),
@@ -222,7 +275,7 @@ def main():
         Player("Julia"),
         Player("Mark"),
     ]
-    state = State(True, players)
+    state = State(False, players)
     state.start_round()
     pass
 

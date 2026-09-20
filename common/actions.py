@@ -9,6 +9,15 @@ class Fold:
     def __repr__(self):
         return "Fold"
 
+class Show:
+    type: Literal["show"]
+
+    def __init__(self):
+        self.type = "show"
+
+    def __repr__(self):
+        return "Show"
+
 class Bet:
     type: Literal["bet"]
     up_to: int
@@ -29,4 +38,4 @@ class AllIn:
     def __repr__(self):
         return f"AllIn"
 
-Action = Fold | Bet | AllIn
+Action = Fold | Show | Bet | AllIn
