@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
+from functools import total_ordering
 from itertools import combinations
 import random
 
@@ -23,9 +24,8 @@ class Suit(Enum):
     def is_red(self) -> bool:
         return not self.is_black()
 
-class Rank(Enum): 
-
-    TWO = 2 
+class Rank(Enum):
+    TWO = 2
     THREE = 3
     FOUR = 4
     FIVE = 5
@@ -34,10 +34,10 @@ class Rank(Enum):
     EIGHT = 8
     NINE = 9
     TEN = 10
-    JACK = 11 
-    QUEEN = 12 
-    KING = 13 
-    ACE = 14 
+    JACK = 11
+    QUEEN = 12
+    KING = 13
+    ACE = 14
 
     def symbol(self) -> str:
         match self:
@@ -54,7 +54,7 @@ class Rank(Enum):
             case _:
                 return str(self.value) + " "
 
-@dataclass(frozen=True) 
+@dataclass(frozen=True)
 class Card:
     rank: Rank
     suit: Suit
@@ -99,8 +99,8 @@ def deck_shuffled() -> list[Card]:
     random.shuffle(d)
     return d
 
-# ===== HAND EVALUATION ===== 
-class HandType(Enum): 
+# ===== HAND EVALUATION =====
+class HandType(Enum):
     HIGH_CARD = 0
     ONE_PAIR = 1
     TWO_PAIR = 2
@@ -111,19 +111,26 @@ class HandType(Enum):
     FOUR_OF_A_KIND = 7
     STRAIGHT_FLUSH = 8
 
-@dataclass
+@dataclass()
+@total_ordering
 class Hand:
-    type : HandType
+    type: HandType
     cards: list[Card]
+
+    def __eq__(self, other):
+        return self.type == other.type
+
+    def __lt__(self, other):
+        return self.type < other.type
 
 def rank_value(card: Card) -> int:
     return card.rank.value
 
-def is_flush (cards: list[Card]) -> bool:
+def is_flush(cards: list[Card]) -> bool:
     for card in cards:
         if card.suit != cards[0].suit:
             return False
-        
+
     return True
 
 def is_straight(cards: list[Card]) -> bool:
@@ -141,7 +148,7 @@ def is_straight(cards: list[Card]) -> bool:
     for x in range(4):
         if card_values[x] + 1 != card_values[x + 1]:
             return False
-        
+
     return True
 
 def evaluate_hand(cards: list[Card]) -> HandType:
@@ -212,7 +219,7 @@ def find_best_hand(cards: list[Card]) -> Hand:
             best = Hand(hand_type, five_cards)
     return best
 
-# ===== EXAMPLE USAGE ==== 
+# ===== EXAMPLE USAGE ====
 if __name__ == "__main__":
     deck_of_cards = deck_shuffled()
 
@@ -238,11 +245,9 @@ if __name__ == "__main__":
     print("\nPlayer 2:", hand2.type.name)
     print("Cards:", " ".join(str(card) for card in hand2.cards))
 
-    if hand1.type.value > hand2.type.value:
+    if hand1.type > hand2.type:
         print("\nPlayer 1 wins!")
-
-    elif hand2.type.value > hand1.type.value:
-            print("\nPlayer 2 wins!")
-
+    elif hand2.type > hand1.type:
+        print("\nPlayer 2 wins!")
     else:
         print("\nTie!") # TODO
