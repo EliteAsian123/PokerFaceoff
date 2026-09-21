@@ -1,53 +1,47 @@
-from common.cards import Card
+from common.public_game_state import *
 from common.actions import *
 from server.logger import *
 import random
 
 class Player:
-    name: str
-    pocket_cards: list[Card]
-    current_bet: int
-    folded: bool
+    data: PublicPlayer
 
     def __init__(self, name):
-        self.name = name
-        self.pocket_cards = []
-        self.current_bet = 0
-        self.folded = False
+        self.data = PublicPlayer(name)
+        self.data.pocket_cards = []
 
     def reset(self):
-        self.pocket_cards = []
-        self.current_bet = 0
-        self.folded = False
+        self.data.reset()
+        self.data.pocket_cards = []
 
     def do_blind(self, up_to):
-        self.current_bet = up_to
-        log_client_action(f"{self.name} bet ${up_to} for the blind.")
+        self.data.current_bet = up_to
+        log_client_action(f"{self.data.name} bet ${up_to} for the blind.")
 
     def do_fold(self):
-        self.folded = True
-        log_client_action(f"{self.name} folded.")
+        self.data.folded = True
+        log_client_action(f"{self.data.name} folded.")
 
     def do_show(self):
-        log_client_action(f"{self.name} shows their cards.")
+        log_client_action(f"{self.data.name} shows their cards.")
 
     def do_check(self):
-        log_client_action(f"{self.name} checked.")
+        log_client_action(f"{self.data.name} checked.")
 
     def do_call(self, up_to):
-        self.current_bet = up_to
-        log_client_action(f"{self.name} called ${up_to}.")
+        self.data.current_bet = up_to
+        log_client_action(f"{self.data.name} called ${up_to}.")
 
     def do_raise(self, up_to):
-        self.current_bet = up_to
-        log_client_action(f"{self.name} raised to ${up_to} total.")
+        self.data.current_bet = up_to
+        log_client_action(f"{self.data.name} raised to ${up_to} total.")
 
     def illegal(self, action, explaination):
-        self.folded = True
-        log_client_action(f"{self.name} performed an illegal action '{action}'. {explaination}")
+        self.data.folded = True
+        log_client_action(f"{self.data.name} performed an illegal action '{action}'. {explaination}")
 
     def action(self, current_bet: int, show_down: bool) -> Action:
-        log_server_action(f"Action on {self.name}.")
+        log_server_action(f"Action on {self.data.name}.")
         if show_down:
             return Show()
         if random.randint(1, 8) == 1:
