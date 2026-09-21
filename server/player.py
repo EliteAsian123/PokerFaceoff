@@ -5,14 +5,15 @@ import random
 
 class Player:
     data: PublicPlayer
+    pocket_cards: list[Card]
 
     def __init__(self, name):
         self.data = PublicPlayer(name)
-        self.data.pocket_cards = []
+        self.pocket_cards = []
 
     def reset(self):
         self.data.reset()
-        self.data.pocket_cards = []
+        self.pocket_cards = []
 
     def do_blind(self, up_to):
         self.data.current_bet = up_to

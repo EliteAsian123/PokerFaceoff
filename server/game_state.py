@@ -51,7 +51,7 @@ class GameState:
             if p.data.folded:
                 log(f"{action_pointer} {p.data.name:<8} [FOLDED]")
             else:
-                log(f"{action_pointer} {p.data.name:<8} (Bet: ${p.data.current_bet})   {pretty_cards(p.data.pocket_cards)}")
+                log(f"{action_pointer} {p.data.name:<8} (Bet: ${p.data.current_bet})   {pretty_cards(p.pocket_cards)}")
 
         log()
 
@@ -163,7 +163,7 @@ class GameState:
         # Deal pocket cards
         for _ in range(2):
             for player in iter_clockwise(self.players, self.data.small_blind_index):
-                player.data.pocket_cards.append(self.deck.pop())
+                player.pocket_cards.append(self.deck.pop())
 
         if self.__play((self.data.small_blind_index + 2) % len(self.players)):
             return
@@ -244,7 +244,7 @@ class GameState:
             if player.data.folded:
                 player_hands.append(None)
             else:
-                player_hands.append(find_best_hand(self.data.community_cards + player.data.pocket_cards))
+                player_hands.append(find_best_hand(self.data.community_cards + player.pocket_cards))
 
         highest_hands_players = []
         for i in range(len(self.players)):
