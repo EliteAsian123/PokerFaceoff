@@ -1,41 +1,21 @@
-from typing import Literal
+from typing import Literal, Union
+from pydantic import BaseModel, Field
 
-class Fold:
-    type: Literal["fold"]
+class Join(BaseModel):
+    type: Literal["join"] = "join"
+    name: str
 
-    def __init__(self):
-        self.type = "fold"
+class Fold(BaseModel):
+    type: Literal["fold"] = "fold"
 
-    def __repr__(self):
-        return "Fold"
+class Show(BaseModel):
+    type: Literal["show"] = "show"
 
-class Show:
-    type: Literal["show"]
-
-    def __init__(self):
-        self.type = "show"
-
-    def __repr__(self):
-        return "Show"
-
-class Bet:
-    type: Literal["bet"]
+class Bet(BaseModel):
+    type: Literal["bet"] = "bet"
     up_to: int
 
-    def __init__(self, up_to: int):
-        self.type = "bet"
-        self.up_to = up_to
+class AllIn(BaseModel):
+    type: Literal["allIn"] = "allIn"
 
-    def __repr__(self):
-        return f"Bet(up_to={self.up_to})"
-
-class AllIn:
-    type: Literal["allIn"]
-
-    def __init__(self):
-        self.type = "allIn"
-
-    def __repr__(self):
-        return f"AllIn"
-
-Action = Fold | Show | Bet | AllIn
+Action = Join | Fold | Show | Bet | AllIn

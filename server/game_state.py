@@ -114,6 +114,11 @@ class GameState:
         Process a player's action.
         """
         match action:
+            case Join():
+                player.illegal(
+                    action,
+                    f"You have already joined."
+                )
             case Fold():
                 player.do_fold()
             case Show():
