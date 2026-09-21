@@ -1,13 +1,16 @@
 from common.public_game_state import *
 from common.actions import *
 from server.logger import *
+from websockets import ServerConnection
 import random
 
 class Player:
+    ws: ServerConnection
     data: PublicPlayer
     pocket_cards: list[Card]
 
-    def __init__(self, name):
+    def __init__(self, ws: ServerConnection, name: str):
+        self.ws = ws
         self.data = PublicPlayer(name)
         self.pocket_cards = []
 

@@ -7,6 +7,9 @@ def log(s: str | None = None):
         else:
             print(s)
 
+def log_important(s: str):
+    print(f"\033[31m{s}\033[0m")
+
 def log_server_action(s: str):
     log(f"\033[34m>\033[0m {s}")
 
