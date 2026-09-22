@@ -1,5 +1,5 @@
-from typing import Literal, Union
-from pydantic import BaseModel, Field
+from typing import Literal
+from pydantic import BaseModel
 
 class Join(BaseModel):
     type: Literal["join"] = "join"

@@ -1,18 +1,34 @@
-from common.public_game_state import *
-from common.actions import *
-from server.logger import *
-from websockets import ServerConnection
-import random
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+# We only need these for type checking. Prevents circular imports.
+if TYPE_CHECKING:
+    from server.client_handler import ClientHandler
+    from server.server import Server
+
+from common.public_game_state import PublicPlayer
+from common.cards import Card
+from common.actions import Action
+from server.logger import log_client_action
 
 class Player:
-    ws: ServerConnection
     data: PublicPlayer
     pocket_cards: list[Card]
 
-    def __init__(self, ws: ServerConnection, name: str):
-        self.ws = ws
+    _client_handler: ClientHandler
+
+    def __init__(self, client_handler: ClientHandler, name: str):
         self.data = PublicPlayer(name)
         self.pocket_cards = []
+        self._client_handler = client_handler
+
+    def get_client_handler_if_valid(self, server: Server) -> ClientHandler | None:
+        """
+        A Player's ClientHandler will not be valid if the Player is still in the game but
+        the client has disconnected from the server.
+        """
+        if server.is_client_handler_valid(self._client_handler):
+            return self._client_handler
 
     def reset(self):
         self.data.reset()
@@ -43,11 +59,3 @@ class Player:
     def illegal(self, action, explaination):
         self.data.folded = True
         log_client_action(f"{self.data.name} performed an illegal action '{action}'. {explaination}")
-
-    def action(self, current_bet: int, show_down: bool) -> Action:
-        log_server_action(f"Action on {self.data.name}.")
-        if show_down:
-            return Show()
-        if random.randint(1, 8) == 1:
-            return Bet(max(current_bet * 2, 2))
-        return Bet(current_bet)
