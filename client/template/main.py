@@ -1,4 +1,4 @@
-from websockets import ClientConnection
+from websockets import ClientConnection, ConnectionClosed
 from common.client_response import *
 from common.actions import *
 from websockets.asyncio.client import connect
@@ -9,16 +9,21 @@ async def send(ws: ClientConnection, model: ClientResponse):
 
 async def main():
     url: str = input("Enter server URL: ")
-    async with connect(url) as ws:
-        await send(ws, ClientResponse(action=Join(name="AJ")))
-        response = await ws.recv()
-        print(f"Received from server: {response}")
-        await send(ws, ClientResponse(action=Join(name="AJ")))
-        response = await ws.recv()
-        print(f"Received from server: {response}")
-        await send(ws, ClientResponse(action=Join(name="AJ")))
-        response = await ws.recv()
-        print(f"Received from server: {response}")
+    try:
+        async with connect(url) as ws:
+            await send(ws, ClientResponse(action=Join(name="AJ")))
+            response = await ws.recv()
+            print(f"Received from server: {response}")
+            await send(ws, ClientResponse(action=Join(name="AJ")))
+            response = await ws.recv()
+            print(f"Received from server: {response}")
+            await send(ws, ClientResponse(action=Join(name="AJ")))
+            response = await ws.recv()
+            print(f"Received from server: {response}")
+    except ConnectionClosed:
+        pass
+    finally:
+        pass
 
 if __name__ == "__main__":
     asyncio.run(main())
