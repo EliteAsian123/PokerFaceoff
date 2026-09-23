@@ -15,10 +15,12 @@ from websockets import ServerConnection, ConnectionClosed
 
 class ClientHandler:
     player: Player | None
+    id: int
     ws: ServerConnection
 
-    def __init__(self, ws: ServerConnection):
+    def __init__(self, id: int, ws: ServerConnection):
         self.player = None
+        self.id = id
         self.ws = ws
 
     async def send(self, model: ServerResponse):
@@ -30,11 +32,11 @@ class ClientHandler:
                 if self.player != None:
                     raise ValueError(f"You have already joined!")
 
-                player = Player(self.ws, name)
+                player = Player(self.ws, self.id, name)
                 server.add_player(player)
 
                 log_important(f"Connection {self.ws.remote_address} joined as '{name}'")
-                await self.send(ServerResponse(action=JoinSuccess()))
+                await self.send(ServerResponse(action=JoinSuccess(id=self.id)))
             case _:
                 raise ValueError("You must join before performing any action.")
 

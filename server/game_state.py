@@ -1,9 +1,11 @@
+from pydantic import TypeAdapter
 from common.public_game_state import *
 from common.actions import *
 from common.iter_clockwise import iter_clockwise, enumerate_clockwise
 from common.cards import Hand, deck_shuffled, find_best_hand
 from server.logger import *
 from server.player import *
+from copy import copy
 
 SMALL_BLIND = 1
 BIG_BLIND = 2
@@ -20,6 +22,12 @@ class GameState:
         self.deck = []
         self.step_mode = step_mode
 
+    def create_public_data(self) -> PublicGameData:
+        return PublicGameData(
+            state=copy(self.data),
+            players=[copy(p.data) for p in self.players]
+        )
+
     def start_round(self):
         self.__pre_flop_stage()
 
@@ -28,9 +36,7 @@ class GameState:
             input()
 
     def __pretty_print(self, action_index: int | None = None):
-        """
-        Log out the current state of the game.
-        """
+        """Log the current state of the game."""
         def pretty_cards(cards: list[Card]):
             if len(cards) == 0:
                 return "N/A"
@@ -64,8 +70,7 @@ class GameState:
             p.data.current_bet = 0
 
     def __play(self, start_index: int) -> bool:
-        """
-        Go around the table and allow players to place their bets.
+        """Go around the table and allow players to place their bets.
 
         Returns:
             True if someone has won. False if no one has won yet.
@@ -110,9 +115,7 @@ class GameState:
                 return False
 
     def __process_action(self, player: Player, action: Action):
-        """
-        Process a player's action.
-        """
+        """Process a player's action."""
         match action:
             case Join():
                 player.illegal(

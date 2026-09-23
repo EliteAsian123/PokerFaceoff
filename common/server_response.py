@@ -1,3 +1,4 @@
+from common.public_game_state import PublicGameData
 from typing import Literal
 from pydantic import BaseModel, Field
 
@@ -7,9 +8,11 @@ class ServerError(BaseModel):
 
 class JoinSuccess(BaseModel):
     type: Literal["joinSuccess"] = "joinSuccess"
+    id: int
 
 class RoundStarting(BaseModel):
     type: Literal["roundStarting"] = "roundStarting"
+    data: PublicGameData
 
 class ServerResponse(BaseModel):
     action: ServerError | JoinSuccess | RoundStarting = Field(..., discriminator="type")

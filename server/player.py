@@ -17,16 +17,13 @@ class Player:
 
     _client_handler: ClientHandler
 
-    def __init__(self, client_handler: ClientHandler, name: str):
-        self.data = PublicPlayer(name)
+    def __init__(self, client_handler: ClientHandler, id: int, name: str):
+        self.data = PublicPlayer(id=id, name=name)
         self.pocket_cards = []
         self._client_handler = client_handler
 
     def get_client_handler_if_valid(self, server: Server) -> ClientHandler | None:
-        """
-        A Player's ClientHandler will not be valid if the Player is still in the game but
-        the client has disconnected from the server.
-        """
+        """A Player's ClientHandler will not be valid if the Player is still in the game but the client has disconnected from the server."""
         if server.is_client_handler_valid(self._client_handler):
             return self._client_handler
 

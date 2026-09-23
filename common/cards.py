@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from enum import Enum, auto
 from functools import total_ordering
 from itertools import combinations
@@ -66,8 +66,7 @@ class Card:
         return f"Card(suit={self.suit}, rank={self.rank})"
 
     def ansi_string(self) -> str:
-        """
-        Return a string with ANSI color codes for console printing.
+        """Return a string with ANSI color codes for console printing.
 
         Black suits (spades, clubs) are white, red suits (hearts, diamonds) are red.
         """
@@ -76,18 +75,14 @@ class Card:
         return f"{color_code}{self.suit.symbol()}{self.rank.symbol()}{reset_code}"
 
 def random_card() -> Card:
-    """
-    Generate a random card from a standard 52-card deck.
-    """
+    """Generate a random card from a standard 52-card deck."""
     return Card(
         rank=random.choice(list(Rank)),
         suit=random.choice(list(Suit))
     )
 
 def deck() -> list[Card]:
-    """
-    Generate a full deck of 52 cards in order.
-    """
+    """Generate a full deck of 52 cards in order."""
     deck = []
     for rank in Rank:
         for suit in Suit:

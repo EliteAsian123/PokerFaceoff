@@ -20,6 +20,8 @@ class Server:
     _players_to_remove: list[Player]
     _joined_names: set[str]
 
+    _next_id: int
+
     def __init__(self):
         self.state = ServerState.LOBBY
 
@@ -28,6 +30,8 @@ class Server:
         self._players = []
         self._players_to_remove = []
         self._joined_names = set()
+
+        self._next_id = 0
 
     async def start(self, expected_player_count: int, step_mode: bool):
         # We need to use a lambda as we need a closure with self
@@ -43,15 +47,18 @@ class Server:
                 await asyncio.sleep(0.5)
                 log_important(f"Starting round with {len(self._players)} players...")
 
-                for p in self._client_handlers:
-                    await p.send(ServerResponse(action=RoundStarting()))
-
                 game_state = GameState(self._players, step_mode)
+
+                public_data = game_state.create_public_data()
+                for p in self._client_handlers:
+                    await p.send(ServerResponse(action=RoundStarting(data=public_data)))
+
                 game_state.start_round()
 
     async def __handler(self, ws: ServerConnection):
         # A new handler is created for each client
-        handler = ClientHandler(ws)
+        handler = ClientHandler(self._next_id, ws)
+        self._next_id += 1
         self._client_handlers.append(handler)
         await handler.start_handler(self)
 
@@ -63,7 +70,8 @@ class Server:
 
     def add_player(self, player: Player):
         if player.data.name.lower() in self._joined_names:
-            raise ValueError(f"A player with the name '{player.data.name}' has already joined.")
+            log_important(f"A player with the name '{player.data.name}' has already joined. Appending ID.")
+            player.data.name = f"{player.data.name} ({player.data.id})"
 
         self._players.append(player)
         self._joined_names.add(player.data.name.lower())

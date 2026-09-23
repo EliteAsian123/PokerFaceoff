@@ -1,30 +1,24 @@
+from pydantic import BaseModel
 from common.cards import Card
 
-class PublicPlayer:
-    name: str
-    folded: bool
-    current_bet: int
-    revealed_pocket_cards: list[Card] | None
+class PublicGameState(BaseModel):
+    community_cards: list[Card] = []
+    pot: int = 0
+    previous_bet: int = 0
+    small_blind_index: int = -1
 
-    def __init__(self, name: str):
-        self.name = name
-        self.folded = False
-        self.current_bet = 0
-        self.revealed_pocket_cards = None
+class PublicPlayer(BaseModel):
+    id: int
+    name: str
+    folded: bool = False
+    current_bet: int = 0
+    revealed_pocket_cards: list[Card] | None = None
 
     def reset(self):
         self.folded = False
         self.current_bet = 0
         self.revealed_pocket_cards = None
 
-class PublicGameState:
-    community_cards: list[Card]
-    pot: int
-    previous_bet: int
-    small_blind_index: int
-
-    def __init__(self):
-        self.community_cards = []
-        self.pot = 0
-        self.previous_bet = 0
-        self.small_blind_index = -1
+class PublicGameData(BaseModel):
+    state: PublicGameState
+    players: list[PublicPlayer]
