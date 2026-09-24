@@ -28,8 +28,8 @@ class GameState:
             players=[copy(p.data) for p in self.players]
         )
 
-    def start_round(self):
-        self.__pre_flop_stage()
+    async def start_round(self):
+        await self.__pre_flop_stage()
 
     def __step(self):
         if self.step_mode:
@@ -63,13 +63,14 @@ class GameState:
 
     def __win(self, player: Player, reason: str):
         log_server_action(f"{player.data.name} wins! {reason}")
+        self.__step()
 
     def __pot_bets(self):
         for p in self.players:
             self.data.pot += p.data.current_bet
             p.data.current_bet = 0
 
-    def __play(self, start_index: int) -> bool:
+    async def __play(self, start_index: int) -> bool:
         """Go around the table and allow players to place their bets.
 
         Returns:
@@ -83,7 +84,7 @@ class GameState:
                 self.__pretty_print(i)
                 self.__step()
 
-                action = player.action(self.data.previous_bet, False)
+                action = await player.action(self.create_public_data())
                 self.__process_action(player, action)
 
                 # See if anyone has won
@@ -150,7 +151,7 @@ class GameState:
             case AllIn():
                 raise NotImplemented
 
-    def __pre_flop_stage(self):
+    async def __pre_flop_stage(self):
         log_server_action("Pre-flop stage.")
 
         # Reset game state
@@ -173,12 +174,12 @@ class GameState:
             for player in iter_clockwise(self.players, self.data.small_blind_index):
                 player.pocket_cards.append(self.deck.pop())
 
-        if self.__play((self.data.small_blind_index + 2) % len(self.players)):
+        if await self.__play((self.data.small_blind_index + 2) % len(self.players)):
             return
 
-        self.__flop_stage()
+        await self.__flop_stage()
 
-    def __flop_stage(self):
+    async def __flop_stage(self):
         log_server_action("Flop stage.")
 
         # Reset game state
@@ -189,12 +190,12 @@ class GameState:
         for _ in range(3):
             self.data.community_cards.append(self.deck.pop())
 
-        if self.__play(self.data.small_blind_index % len(self.players)):
+        if await self.__play(self.data.small_blind_index % len(self.players)):
             return
 
-        self.__turn_stage()
+        await self.__turn_stage()
 
-    def __turn_stage(self):
+    async def __turn_stage(self):
         log_server_action("Turn stage.")
 
         # Reset game state
@@ -204,12 +205,12 @@ class GameState:
         self.deck.pop()
         self.data.community_cards.append(self.deck.pop())
 
-        if self.__play(self.data.small_blind_index % len(self.players)):
+        if await self.__play(self.data.small_blind_index % len(self.players)):
             return
 
-        self.__river_stage()
+        await self.__river_stage()
 
-    def __river_stage(self):
+    async def __river_stage(self):
         log_server_action("River stage.")
 
         # Reset game state
@@ -219,12 +220,12 @@ class GameState:
         self.deck.pop()
         self.data.community_cards.append(self.deck.pop())
 
-        if self.__play(self.data.small_blind_index % len(self.players)):
+        if await self.__play(self.data.small_blind_index % len(self.players)):
             return
 
-        self.__showdown_stage()
+        await self.__showdown_stage()
 
-    def __showdown_stage(self):
+    async def __showdown_stage(self):
         log_server_action("Showdown stage.")
 
         # Reset game state
@@ -234,7 +235,7 @@ class GameState:
             self.__pretty_print(i)
             self.__step()
 
-            action = player.action(self.data.previous_bet, True)
+            action = await player.action(self.create_public_data())
             match action:
                 case Fold():
                     player.do_fold()

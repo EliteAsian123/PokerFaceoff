@@ -6,7 +6,8 @@ if TYPE_CHECKING:
     from server.client_handler import ClientHandler
     from server.server import Server
 
-from common.public_game_state import PublicPlayer
+from common.server_response import ServerResponse, YourTurn
+from common.public_game_state import PublicGameData, PublicPlayer
 from common.cards import Card
 from common.actions import Action
 from server.logger import log_client_action
@@ -21,11 +22,6 @@ class Player:
         self.data = PublicPlayer(id=id, name=name)
         self.pocket_cards = []
         self._client_handler = client_handler
-
-    def get_client_handler_if_valid(self, server: Server) -> ClientHandler | None:
-        """A Player's ClientHandler will not be valid if the Player is still in the game but the client has disconnected from the server."""
-        if server.is_client_handler_valid(self._client_handler):
-            return self._client_handler
 
     def reset(self):
         self.data.reset()
@@ -56,3 +52,12 @@ class Player:
     def illegal(self, action, explaination):
         self.data.folded = True
         log_client_action(f"{self.data.name} performed an illegal action '{action}'. {explaination}")
+
+    async def action(self, data: PublicGameData) -> Action:
+        await self._client_handler.send(ServerResponse(action=YourTurn(data=data)))
+        result = await self._client_handler.wait_until_action()
+
+        if result is not None:
+            return result
+
+        self.illegal(None, "The player must respond within the allowed time.")

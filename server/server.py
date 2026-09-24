@@ -40,6 +40,8 @@ class Server:
             log_important(f"Waiting until {expected_player_count} are present before starting the game.")
 
             while True:
+                self.state = ServerState.LOBBY
+
                 while len(self._players) < expected_player_count:
                     await asyncio.sleep(0.5)
                     self.remove_queued_players()
@@ -47,13 +49,15 @@ class Server:
                 await asyncio.sleep(0.5)
                 log_important(f"Starting round with {len(self._players)} players...")
 
+                self.state = ServerState.GAME
+
                 game_state = GameState(self._players, step_mode)
 
                 public_data = game_state.create_public_data()
                 for p in self._client_handlers:
                     await p.send(ServerResponse(action=RoundStarting(data=public_data)))
 
-                game_state.start_round()
+                await game_state.start_round()
 
     async def __handler(self, ws: ServerConnection):
         # A new handler is created for each client

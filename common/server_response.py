@@ -14,5 +14,9 @@ class RoundStarting(BaseModel):
     type: Literal["roundStarting"] = "roundStarting"
     data: PublicGameData
 
+class YourTurn(BaseModel):
+    type: Literal["yourTurn"] = "yourTurn"
+    data: PublicGameData
+
 class ServerResponse(BaseModel):
-    action: ServerError | JoinSuccess | RoundStarting = Field(..., discriminator="type")
+    action: ServerError | JoinSuccess | RoundStarting | YourTurn = Field(..., discriminator="type")
