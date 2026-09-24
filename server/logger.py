@@ -2,7 +2,7 @@ ENABLE_LOGGING = True
 
 def log(s: str | None = None):
     if ENABLE_LOGGING:
-        if s == None:
+        if s is None:
             print()
         else:
             print(s)

@@ -6,6 +6,7 @@ from common.actions import Join
 from websockets.asyncio.client import connect
 from . import bot
 import asyncio
+import sys
 
 async def send(ws: ClientConnection, model: ClientResponse):
     await ws.send(model.model_dump_json(), True)
@@ -23,7 +24,12 @@ def get_me(data: PublicGameData, self_id: int) -> PublicPlayer:
 async def main():
     bot.pre_join()
 
-    url: str = input("Enter PokerFaceoff server URL: ")
+    url: str
+    if len(sys.argv) >= 2:
+        url = sys.argv[1]
+    else:
+        url = input("Enter PokerFaceoff server URL: ")
+
     self_id: int = -1
     try:
         async with connect(url) as ws:

@@ -50,13 +50,13 @@ class ClientHandler:
                     case ServerState.LOBBY:
                         await self.__handle_lobby(server, data)
         except ConnectionClosed:
-            if self.player == None:
+            if self.player is None:
                 log_important(f"Connnection closed with {self.ws.remote_address}")
             else:
                 log_important(f"Connnection closed with {self.ws.remote_address} '{self.player.data.name}'")
                 server.queue_player_removal(self.player)
         except Exception as e:
-            if self.player == None:
+            if self.player is None:
                 log_important(f"Error with {self.ws.remote_address}: {e}")
             else:
                 log_important(f"Error with {self.ws.remote_address} '{self.player.data.name}': {e}")
