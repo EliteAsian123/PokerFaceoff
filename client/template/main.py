@@ -32,7 +32,7 @@ async def main():
 
     self_id: int = -1
     try:
-        async with connect(url) as ws:
+        async with connect(url, ping_interval=5) as ws:
             await send(ws, ClientResponse(action=Join(name=bot.DISPLAY_NAME)))
             response = await recv(ws)
             match response.action:
