@@ -22,10 +22,17 @@ class GameState:
         self.deck = []
         self.step_mode = step_mode
 
-    def create_public_data(self) -> PublicGameData:
+    def create_public_data(self, player: Player | None) -> PublicGameData:
+        players: list[Player] = []
+        for p in self.players:
+            data = copy(p.data)
+            if p == player:
+                data.revealed_pocket_cards = player.pocket_cards
+            players.append(data)
+
         return PublicGameData(
             state=copy(self.data),
-            players=[copy(p.data) for p in self.players]
+            players=players
         )
 
     async def start_round(self):
@@ -84,7 +91,7 @@ class GameState:
                 self.__pretty_print(i)
                 self.__step()
 
-                action = await player.action(self.create_public_data())
+                action = await player.action(self.create_public_data(player))
                 self.__process_action(player, action)
 
                 # See if anyone has won
@@ -235,7 +242,7 @@ class GameState:
             self.__pretty_print(i)
             self.__step()
 
-            action = await player.action(self.create_public_data())
+            action = await player.action(self.create_public_data(player))
             match action:
                 case Fold():
                     player.do_fold()

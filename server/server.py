@@ -53,9 +53,9 @@ class Server:
 
                 game_state = GameState(self._players, step_mode)
 
-                public_data = game_state.create_public_data()
                 for p in self._client_handlers:
-                    await p.send(ServerResponse(action=RoundStarting(data=public_data)))
+                    data = game_state.create_public_data(p)
+                    await p.send(ServerResponse(action=RoundStarting(data=data)))
 
                 await game_state.start_round()
 

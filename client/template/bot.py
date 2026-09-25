@@ -26,5 +26,7 @@ def action(data: PublicGameData, me: PublicPlayer) -> Action:
         data: An instance of `PublicGameData` representing the current state of the game.
         me: An instance of `PublicPlayer` representing this bot's player state. This exact instance is guarenteed to be within `data.players`.
     """
+    displayed_cards = " ".join([c.ansi_string() for c in me.revealed_pocket_cards])
+    print(f"My cards are: {displayed_cards}")
     print("Folding...")
     return Fold()
