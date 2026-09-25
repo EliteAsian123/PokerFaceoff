@@ -1,7 +1,7 @@
 from websockets import ClientConnection, ConnectionClosed
 from common.client_response import ClientResponse
 from common.public_game_state import PublicGameData, PublicPlayer
-from common.server_response import ServerResponse, ServerError, JoinSuccess, RoundStarting, YourTurn
+from common.server_response import RoundEnd, ServerResponse, ServerError, JoinSuccess, RoundStarting, YourTurn
 from common.actions import Join
 from websockets.asyncio.client import connect
 from . import bot
@@ -55,6 +55,8 @@ async def main():
                     case RoundStarting(data=data):
                         print("Starting round...")
                         bot.start_round(data, get_me(data, self_id))
+                    case RoundEnd(data=data, winners=winners):
+                        print("Round ended.")
                     case YourTurn(data=data):
                         print("Action!")
                         result = bot.action(data, get_me(data, self_id))

@@ -34,8 +34,8 @@ class GameState:
             players=players
         )
 
-    async def start_round(self):
-        await self.__pre_flop_stage()
+    async def start_round(self) -> list[Player]:
+        return await self.__pre_flop_stage()
 
     def __step(self):
         if self.step_mode:
@@ -69,14 +69,13 @@ class GameState:
 
     def __win(self, player: Player, reason: str):
         log_server_action(f"{player.data.name} wins! {reason}")
-        self.__step()
 
     def __pot_bets(self):
         for p in self.players:
             self.data.pot += p.data.current_bet
             p.data.current_bet = 0
 
-    async def __play(self, start_index: int) -> bool:
+    async def __play(self, start_index: int) -> Player | None:
         """Go around the table and allow players to place their bets.
 
         Returns:
@@ -105,7 +104,7 @@ class GameState:
                 if unfolded_amount == 1:
                     self.__pot_bets()
                     self.__win(potential_winner, "Everyone else folded.")
-                    return True
+                    return potential_winner
 
             # A round of play does not end until all players have folded, all players
             # put in all of their chips, or all players matched the amount put in by all
@@ -119,7 +118,7 @@ class GameState:
                 break
             else:
                 self.__pot_bets()
-                return False
+                return None
 
     def __process_action(self, player: Player, action: Action):
         """Process a player's action."""
@@ -157,7 +156,7 @@ class GameState:
             case AllIn():
                 raise NotImplemented
 
-    async def __pre_flop_stage(self):
+    async def __pre_flop_stage(self) -> list[Player]:
         log_server_action("Pre-flop stage.")
 
         # Reset game state
@@ -181,12 +180,13 @@ class GameState:
             for player in iter_clockwise(self.players, self.data.small_blind_index):
                 player.pocket_cards.append(self.deck.pop())
 
-        if await self.__play((self.data.small_blind_index + 2) % len(self.players)):
-            return
+        potential_winner = await self.__play((self.data.small_blind_index + 2) % len(self.players))
+        if potential_winner is not None:
+            return [potential_winner]
 
-        await self.__flop_stage()
+        return await self.__flop_stage()
 
-    async def __flop_stage(self):
+    async def __flop_stage(self) -> list[Player]:
         log_server_action("Flop stage.")
 
         # Reset game state
@@ -198,12 +198,13 @@ class GameState:
         for _ in range(3):
             self.data.community_cards.append(self.deck.pop())
 
-        if await self.__play(self.data.small_blind_index % len(self.players)):
-            return
+        potential_winner = await self.__play(self.data.small_blind_index % len(self.players))
+        if potential_winner is not None:
+            return [potential_winner]
 
-        await self.__turn_stage()
+        return await self.__turn_stage()
 
-    async def __turn_stage(self):
+    async def __turn_stage(self) -> list[Player]:
         log_server_action("Turn stage.")
 
         # Reset game state
@@ -214,12 +215,13 @@ class GameState:
         self.deck.pop()
         self.data.community_cards.append(self.deck.pop())
 
-        if await self.__play(self.data.small_blind_index % len(self.players)):
-            return
+        potential_winner = await self.__play(self.data.small_blind_index % len(self.players))
+        if potential_winner is not None:
+            return [potential_winner]
 
-        await self.__river_stage()
+        return await self.__river_stage()
 
-    async def __river_stage(self):
+    async def __river_stage(self) -> list[Player]:
         log_server_action("River stage.")
 
         # Reset game state
@@ -230,12 +232,13 @@ class GameState:
         self.deck.pop()
         self.data.community_cards.append(self.deck.pop())
 
-        if await self.__play(self.data.small_blind_index % len(self.players)):
-            return
+        potential_winner = await self.__play(self.data.small_blind_index % len(self.players))
+        if potential_winner is not None:
+            return [potential_winner]
 
-        await self.__showdown_stage()
+        return await self.__showdown_stage()
 
-    async def __showdown_stage(self):
+    async def __showdown_stage(self) -> list[Player]:
         log_server_action("Showdown stage.")
 
         # Reset game state
@@ -277,10 +280,12 @@ class GameState:
                 highest_hands_players = [i]
 
         if len(highest_hands_players) == 1:
+            winner = self.players[highest_hands_players[0]]
             self.__win(
-                self.players[highest_hands_players[0]],
+                winner,
                 f"Won with a {player_hands[highest_hands_players[0]].ansi_string()}."
             )
+            return [winner]
         else:
             log_server_action("Tie!")
             raise NotImplemented

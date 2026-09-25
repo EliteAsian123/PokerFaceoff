@@ -3,7 +3,7 @@ from server.game_state import GameState
 from server.client_handler import ClientHandler
 from server.logger import log_important
 from server.server_state import ServerState
-from common.server_response import ServerResponse, RoundStarting
+from common.server_response import RoundEnd, ServerResponse, RoundStarting
 from websockets import ServerConnection, serve
 import asyncio
 
@@ -57,7 +57,10 @@ class Server:
                     data = game_state.create_public_data(p)
                     await p.send(ServerResponse(action=RoundStarting(data=data)))
 
-                await game_state.start_round()
+                winners = [p.data for p in await game_state.start_round()]
+                for p in self._client_handlers:
+                    data = game_state.create_public_data(p)
+                    await p.send(ServerResponse(action=RoundEnd(data=data, winners=winners)))
 
     async def __handler(self, ws: ServerConnection):
         # A new handler is created for each client
