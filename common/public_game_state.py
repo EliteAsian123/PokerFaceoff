@@ -1,11 +1,20 @@
+from enum import Enum, auto
 from pydantic import BaseModel
 from common.cards import Card
+
+class GameStage(Enum):
+    PRE_FLOP = auto()
+    FLOP = auto()
+    TURN = auto()
+    RIVER = auto()
+    SHOWDOWN = auto()
 
 class PublicGameState(BaseModel):
     community_cards: list[Card] = []
     pot: int = 0
     previous_bet: int = 0
     small_blind_index: int = -1
+    game_stage: GameStage = GameStage.PRE_FLOP
 
 class PublicPlayer(BaseModel):
     id: int

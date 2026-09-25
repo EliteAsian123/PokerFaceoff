@@ -11,16 +11,19 @@ from common.public_game_state import PublicGameData, PublicPlayer
 from common.cards import Card
 from common.actions import Action
 from server.logger import log_client_action
+from copy import copy
 
 class Player:
     data: PublicPlayer
     pocket_cards: list[Card]
+    disable_time_limit: bool
 
     _client_handler: ClientHandler
 
-    def __init__(self, client_handler: ClientHandler, id: int, name: str):
+    def __init__(self, client_handler: ClientHandler, id: int, name: str, disable_time_limit: bool):
         self.data = PublicPlayer(id=id, name=name)
         self.pocket_cards = []
+        self.disable_time_limit = disable_time_limit
         self._client_handler = client_handler
 
     def reset(self):
@@ -36,6 +39,7 @@ class Player:
         log_client_action(f"{self.data.name} folded.")
 
     def do_show(self):
+        self.data.revealed_pocket_cards = copy(self.pocket_cards)
         log_client_action(f"{self.data.name} shows their cards.")
 
     def do_check(self):

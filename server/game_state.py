@@ -1,4 +1,3 @@
-from pydantic import TypeAdapter
 from common.public_game_state import *
 from common.actions import *
 from common.iter_clockwise import iter_clockwise, enumerate_clockwise
@@ -62,9 +61,9 @@ class GameState:
                 action_pointer = "*"
 
             if p.data.folded:
-                log(f"{action_pointer} {p.data.name:<8} [FOLDED]")
+                log(f"{action_pointer} {p.data.name:<15} [FOLDED]")
             else:
-                log(f"{action_pointer} {p.data.name:<8} (Bet: ${p.data.current_bet})   {pretty_cards(p.pocket_cards)}")
+                log(f"{action_pointer} {p.data.name:<15} (Bet: ${p.data.current_bet})   {pretty_cards(p.pocket_cards)}")
 
         log()
 
@@ -169,6 +168,7 @@ class GameState:
         self.data.pot = 0
         self.data.previous_bet = BIG_BLIND
         self.data.small_blind_index += 1
+        self.data.game_stage = GameStage.PRE_FLOP
 
         # Blind bets
         small_blind_index = self.data.small_blind_index % len(self.players)
@@ -191,6 +191,7 @@ class GameState:
 
         # Reset game state
         self.data.previous_bet = 0
+        self.data.game_stage = GameStage.FLOP
 
         # Burn and turn
         self.deck.pop()
@@ -207,6 +208,7 @@ class GameState:
 
         # Reset game state
         self.data.previous_bet = 0
+        self.data.game_stage = GameStage.TURN
 
         # Burn and turn
         self.deck.pop()
@@ -222,6 +224,7 @@ class GameState:
 
         # Reset game state
         self.data.previous_bet = 0
+        self.data.game_stage = GameStage.RIVER
 
         # Burn and turn
         self.deck.pop()
@@ -237,6 +240,7 @@ class GameState:
 
         # Reset game state
         self.data.previous_bet = 0
+        self.data.game_stage = GameStage.SHOWDOWN
 
         for i, player in enumerate_clockwise(self.players, self.data.small_blind_index % len(self.players)):
             self.__pretty_print(i)
@@ -264,6 +268,9 @@ class GameState:
 
         highest_hands_players = []
         for i in range(len(self.players)):
+            if player_hands[i] is None:
+                continue
+
             if len(highest_hands_players) == 0 or player_hands[i] == player_hands[highest_hands_players[0]]:
                 highest_hands_players.append(i)
             elif player_hands[i] > player_hands[highest_hands_players[0]]:

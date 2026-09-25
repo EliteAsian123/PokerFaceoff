@@ -33,11 +33,14 @@ class ClientHandler:
         await self.ws.send(model.model_dump_json(), True)
 
     async def wait_until_action(self) -> Action:
-        MAX_TIME = 10.0
         SLEEP_TIME = 0.1
 
+        max_time = 10.0
+        if self.player.disable_time_limit:
+            max_time = float("inf")
+
         time = 0
-        while time < MAX_TIME:
+        while time < max_time:
             if self._last_processed_action is not None:
                 result = self._last_processed_action
                 self._last_processed_action = None
@@ -49,12 +52,12 @@ class ClientHandler:
 
     async def __handle_lobby(self, server: Server, data: ClientResponse):
         match data.action:
-            case Join(name=name):
-                if self.player != None:
+            case Join(name=name, disable_time_limit=disable_time_limit):
+                if self.player is not None:
                     raise ValueError(f"You have already joined!")
 
-                player = Player(self, self.id, name)
-                server.add_player(player)
+                self.player = Player(self, self.id, name, disable_time_limit)
+                server.add_player(self.player)
 
                 log_important(f"Connection {self.ws.remote_address} joined as '{name}'")
                 await self.send(ServerResponse(action=JoinSuccess(id=self.id)))

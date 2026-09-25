@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class Join(BaseModel):
     type: Literal["join"] = "join"
     name: str
+    disable_time_limit: bool = False
 
 class Fold(BaseModel):
     type: Literal["fold"] = "fold"
