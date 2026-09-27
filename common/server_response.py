@@ -1,4 +1,4 @@
-from common.public_game_state import PublicGameData, PublicPlayer
+from common.public_game_state import PublicGameData
 from typing import Literal
 from pydantic import BaseModel, Field
 
@@ -21,7 +21,7 @@ class YourTurn(BaseModel):
 class RoundEnd(BaseModel):
     type: Literal["roundEnd"] = "roundEnd"
     data: PublicGameData
-    winners: list[PublicPlayer]
+    winners: list[int]
 
 class ServerResponse(BaseModel):
     action: ServerError | JoinSuccess | RoundStarting | YourTurn | RoundEnd = Field(..., discriminator="type")

@@ -57,7 +57,7 @@ class Server:
                     data = game_state.create_public_data(p)
                     await p.send(ServerResponse(action=RoundStarting(data=data)))
 
-                winners = [p.data for p in await game_state.start_round()]
+                winners = [p.data.id for p in await game_state.start_round()]
                 for p in self._client_handlers:
                     data = game_state.create_public_data(p)
                     await p.send(ServerResponse(action=RoundEnd(data=data, winners=winners)))

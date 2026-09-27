@@ -86,7 +86,7 @@ async def main():
                         print("Starting round...")
                     case RoundEnd(data=data, winners=winners):
                         clear()
-                        names = ", ".join([p.name for p in winners])
+                        names = ", ".join([p.name for p in data.players if p.id in winners])
                         print(f"Round ended! Winners: {names}")
                         input()
                     case YourTurn(data=data):
