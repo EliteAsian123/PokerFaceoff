@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from server.client_handler import ClientHandler
     from server.server import Server
 
-from common.server_response import ServerResponse, YourTurn
+from common.server_response import ServerResponse, YourTurn, IllegalAction
 from common.public_game_state import PublicGameData, PublicPlayer
 from common.cards import Card
 from common.actions import Action
@@ -53,9 +53,12 @@ class Player:
         self.data.current_bet = up_to
         log_client_action(f"{self.data.name} raised to ${up_to} total.")
 
-    def illegal(self, action, explaination):
+    async def illegal(self, action, explaination):
         self.data.folded = True
         log_client_action(f"{self.data.name} performed an illegal action '{action}'. {explaination}")
+        await self._client_handler.send(
+            ServerResponse(action=IllegalAction(message=explaination))
+        )
 
     async def action(self, data: PublicGameData) -> Action:
         await self._client_handler.send(ServerResponse(action=YourTurn(data=data)))
@@ -64,4 +67,4 @@ class Player:
         if result is not None:
             return result
 
-        self.illegal(None, "The player must respond within the allowed time.")
+        await self.illegal(None, "The player must respond within the allowed time.")

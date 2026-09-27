@@ -90,7 +90,7 @@ class GameState:
                 self.__step()
 
                 action = await player.action(self.create_public_data(player))
-                self.__process_action(player, action)
+                await self.__process_action(player, action)
 
                 # See if anyone has won
                 potential_winner = None
@@ -120,24 +120,24 @@ class GameState:
                 self.__pot_bets()
                 return None
 
-    def __process_action(self, player: Player, action: Action):
+    async def __process_action(self, player: Player, action: Action):
         """Process a player's action."""
         match action:
             case Join():
-                player.illegal(
+                await player.illegal(
                     action,
                     f"You have already joined."
                 )
             case Fold():
                 player.do_fold()
             case Show():
-                player.illegal(
+                await player.illegal(
                     action,
                     f"You showed your hand before the showdown."
                 )
             case Bet(up_to=up_to):
                 if up_to < self.data.previous_bet or up_to < player.data.current_bet:
-                    player.illegal(
+                    await player.illegal(
                         action,
                         f"You bet less than the current bet of ${self.data.previous_bet}."
                     )
@@ -146,7 +146,7 @@ class GameState:
                 elif up_to == self.data.previous_bet:
                     player.do_call(up_to)
                 elif up_to < self.data.previous_bet * 2:
-                    player.illegal(
+                    await player.illegal(
                         action,
                         f"You must (re)raise at least two times the current bet (${self.data.previous_bet} * 2 = ${self.data.previous_bet})."
                     )
@@ -256,7 +256,7 @@ class GameState:
                 case Show():
                     player.do_show()
                 case _:
-                    player.illegal(
+                    await player.illegal(
                         action,
                         "You cannot do this in the showdown."
                     )

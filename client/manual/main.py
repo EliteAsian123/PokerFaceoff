@@ -2,7 +2,7 @@ from websockets import ClientConnection, ConnectionClosed
 from common.cards import Card
 from common.client_response import ClientResponse
 from common.public_game_state import PublicGameData, PublicPlayer
-from common.server_response import RoundEnd, ServerResponse, ServerError, JoinSuccess, RoundStarting, YourTurn
+from common.server_response import RoundEnd, ServerResponse, ServerError, JoinSuccess, RoundStarting, YourTurn, IllegalAction
 from common.actions import Bet, Fold, Join, Show
 from websockets.asyncio.client import connect
 import asyncio
@@ -89,6 +89,8 @@ async def main():
                         names = ", ".join([p.name for p in data.players if p.id in winners])
                         print(f"Round ended! Winners: {names}")
                         input()
+                    case IllegalAction(message=message):
+                        print(f"Illegal action: {message}")
                     case YourTurn(data=data):
                         clear()
                         show_game(data, get_me(data, self_id))

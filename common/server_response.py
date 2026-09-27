@@ -23,5 +23,9 @@ class RoundEnd(BaseModel):
     data: PublicGameData
     winners: list[int]
 
+class IllegalAction(BaseModel):
+    type: Literal["illegalAction"] = "illegalAction"
+    message: str
+
 class ServerResponse(BaseModel):
-    action: ServerError | JoinSuccess | RoundStarting | YourTurn | RoundEnd = Field(..., discriminator="type")
+    action: ServerError | JoinSuccess | RoundStarting | YourTurn | RoundEnd | IllegalAction = Field(..., discriminator="type")
