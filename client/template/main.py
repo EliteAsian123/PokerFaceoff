@@ -56,7 +56,8 @@ async def main():
                         print("Starting round...")
                         bot.start_round(data, get_me(data, self_id))
                     case RoundEnd(data=data, winners=winners):
-                        print("Round ended.")
+                        me = get_me(data, self_id)
+                        bot.end_round(data, [p for p in data.players if p.id in winners], me)
                     case YourTurn(data=data):
                         print("Action!")
                         result = bot.action(data, get_me(data, self_id))

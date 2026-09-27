@@ -16,6 +16,16 @@ def start_round(data: PublicGameData, me: PublicPlayer):
     """
     print("The round has started!")
 
+def end_round(data: PublicGameData, winners: list[PublicPlayer], me: PublicPlayer):
+    """Called at the end of the round.
+
+    Args:
+        data: An instance of `PublicGameData` representing the final state of the round.
+        winners: A list of `PublicPlayer` instances representing the winner(s) of the round. Each instance is guaranteed to be within `data.players`.
+        me: An instance of `PublicPlayer` representing this bot's player state. This exact instance is guarenteed to be within `data.players`.
+    """
+    print("The round has ended!")
+
 def action(data: PublicGameData, me: PublicPlayer) -> Action:
     """Called when it's the bot's turn.
 
